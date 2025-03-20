@@ -1,10 +1,7 @@
 package com.crudapp.DAO;
 
 import com.crudapp.Model.User;
-import com.password4j.BcryptFunction;
-import com.password4j.Hash;
-import com.password4j.Password;
-import com.password4j.types.Bcrypt;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -21,8 +18,10 @@ public class UserDAO {
     private static final String delete = "delete from crud_system where id=?";
     private static final String selectUser = "select * from crud_system where id = ?";
     private static final String selectAll = "select * from crud_system";
-    private static final String loginUser = "select * from crud_system where name = ? and password = ?";
+    //private static final String loginUser = "select * from crud_system where name = ? and password = ?";
     private static final String forgetPassword = "select * from crud_system where name =? and email = ?";
+    private static final String hashedPassword = "select * from crud_system where name = ?";
+    private static final String userName = "select name from crud_system where name = ?";
 
     protected static Connection getConnection() throws SQLException {
         Connection conn = DBConnection.getConnection();
@@ -34,24 +33,37 @@ public class UserDAO {
         return conn;
     }
 
-        public void insertUser(User user) throws SQLException {
+        public boolean insertUser(User user) throws SQLException {
         try (Connection connection=getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(insert)) {
-        preparedStatement.setString(1, user.getName());
-        preparedStatement.setString(2, user.getPassword());
-        preparedStatement.setString(3, user.getEmail());
-        preparedStatement.setBlob(4, user.getImage_path());
-        preparedStatement.executeUpdate();
+             PreparedStatement preparedStatement2 = connection.prepareStatement(userName)){
+        preparedStatement2.setString(1, user.getName());
+            ResultSet resultSet = preparedStatement2.executeQuery();
+        if (resultSet.next()) {
+            return false;
+        }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insert)){
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, hashPassword(user.getPassword()));
+            preparedStatement.setString(3, user.getEmail());
+            preparedStatement.setBlob(4, user.getImage_path());
+            preparedStatement.executeUpdate();
+                System.out.println("Inserted user successfully!");
+            return true;
+        }
+
+
         }catch (Exception e) {
             e.printStackTrace();
         }
-    }
+        return false;
+        }
+
     public boolean updateUser(User user) throws SQLException {
         boolean rowupdated;
         try (Connection connection=getConnection();
              PreparedStatement statement = connection.prepareStatement(update)) {
             statement.setString(1, user.getName());
-            statement.setString(2, user.getPassword());
+            statement.setString(2, hashPassword(user.getPassword()));
             statement.setString(3, user.getEmail());
             statement.setBlob(4, user.getImage_path());
             statement.setInt(5, user.getId());
@@ -106,19 +118,36 @@ public class UserDAO {
         }
         return users;
     }
-    public boolean selectUserByNameandPassword(String name, String password) throws SQLException {
-        boolean status = false ;
-        try (Connection connection=getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(loginUser)) {
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, password);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            status = resultSet.next();
-            }catch (Exception e) {
-            e.printStackTrace();
+//    public boolean selectUserByNameandPassword(String name, String password) throws SQLException {
+//        boolean status = false ;
+//        try (Connection connection=getConnection();
+//             PreparedStatement preparedStatement = connection.prepareStatement(loginUser)) {
+//            preparedStatement.setString(1, name);
+//            preparedStatement.setString(2, password);
+//            ResultSet resultSet = preparedStatement.executeQuery();
+//            status = resultSet.next();
+//            }catch (Exception e) {
+//            e.printStackTrace();
+//
+//        }return status;
+//    }
 
-        }return status;
+    public boolean loginUser(String name, String password) throws SQLException {
+        boolean login = false;
+        try (Connection connection=getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(hashedPassword)) {
+            preparedStatement.setString(1, name);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                String storedHash = resultSet.getString("password");
+                login = BCrypt.checkpw(password,storedHash);
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return login;
     }
+
     public boolean ForgetPassword(String name, String email) throws SQLException {
         boolean status = false ;
         try (Connection connection=getConnection();
@@ -150,21 +179,7 @@ public class UserDAO {
             return null;
         }
     }
-
-    public static String hash(String password) throws SQLException{
-        try{
-            System.out.println("DAO"+password);
-            BcryptFunction bcrypt = BcryptFunction.getInstance(Bcrypt.B, 12);
-            Hash hash = Password.hash(password)
-                    .with(bcrypt);
-            hash.getResult();
-            password = hash.getResult();
-            return password;
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-        return password;
+    private String hashPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt());
     }
-
-
 }

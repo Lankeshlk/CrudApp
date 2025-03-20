@@ -28,6 +28,11 @@
 <div class="container col-md-5">
   <div class="card" style="top: 100px">
     <div class="card-body">
+      <c:if test="${not empty errorMessage}">
+        <div class="alert alert-danger">
+            ${errorMessage}
+        </div>
+      </c:if>
       <form action="<%=request.getContextPath()%>/forget" method="post">
         <h2>Forget Password</h2>
         <label>Name</label>

@@ -15,13 +15,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 
+import static java.util.Objects.hash;
+
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2,
         maxFileSize = 1024 * 1024 * 10,
         maxRequestSize = 1024 * 1024 * 50
 )
 
-@WebServlet(name = "UserServlet", value = {"/user-servlet", "/list", "/new", "/insert", "/update", "/delete","/edit","/login","/forget"})
+@WebServlet(name = "UserServlet", value = {"/user-servlet", "/list", "/new", "/insert", "/update", "/delete","/edit","/login","/forget","/logout"})
 public class UserServlet extends HttpServlet {
     private UserDAO userDAO;
 
@@ -76,6 +78,13 @@ public class UserServlet extends HttpServlet {
                     e.printStackTrace();
                 }
                 break;
+            case "/logout":
+                try {
+                    LogoutUser(request, response);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                break;
             case "/forget":
                 try {
                     RetriveUser(request, response);
@@ -115,17 +124,8 @@ public class UserServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Check confirm password");
             RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
             dispatcher.forward(request, response);
+            response.sendRedirect( request.getContextPath() + "/insert");
         }
-//        UserDAO.hash(password);
-//        password =UserDAO.hash(password);
-//        BcryptFunction bcrypt = BcryptFunction.getInstance(Bcrypt.B, 12);
-//
-//        Hash hash = Password.hash(password)
-//                .with(bcrypt);
-//        hash.getResult();
-//        System.out.println(hash);
-//        password = hash.getResult();
-
         String email = request.getParameter("email");
         Part image = request.getPart("image_path");
         InputStream image_stream = null;
@@ -135,8 +135,17 @@ public class UserServlet extends HttpServlet {
             System.out.println("No image uploaded!");
         }
         User newUser = new User(name,password,email,image_stream);
-        userDAO.insertUser(newUser);
-        response.sendRedirect( request.getContextPath() + "/list");
+        boolean Register = userDAO.insertUser(newUser);
+
+        if (Register == false) {
+            request.setAttribute("errorMessage", "Invalid username");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
+            dispatcher.forward(request, response);
+            response.sendRedirect( request.getContextPath() + "/insert");
+        }else {
+            response.sendRedirect( request.getContextPath() + "/list");
+        }
+
     }
 
 
@@ -175,8 +184,10 @@ public class UserServlet extends HttpServlet {
     private void DeleteUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
-        userDAO.deleteUser(id);
-        response.sendRedirect(request.getContextPath() + "/list");
+        boolean isDeleted = userDAO.deleteUser(id);
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(isDeleted ? "success" : "failure");
     }
 
 
@@ -185,24 +196,10 @@ public class UserServlet extends HttpServlet {
             throws ServletException, IOException, SQLException {
         String name = request.getParameter("name");
         String password = request.getParameter("password");
-//        UserDAO.hash(password);
-//        password =UserDAO.hash(password);
 
-//        System.out.println(password);
-//        BcryptFunction bcrypt = BcryptFunction.getInstance(Bcrypt.B, 12);
-//
-//        Hash hash = Password.hash(password)
-//                .with(bcrypt);
-//        hash.getResult();
-//        System.out.println(hash);
-//        password = hash.getResult();
-//        System.out.println(password);
-
-
-        userDAO.selectUserByNameandPassword(name, password);
-        System.out.println(password);
         try {
-            boolean isValidUser = userDAO.selectUserByNameandPassword(name, password);
+            boolean isValidUser = userDAO.loginUser(name, password);
+
             if (isValidUser) {
                 HttpSession session = request.getSession();
                 session.setAttribute("user", name);
@@ -211,12 +208,25 @@ public class UserServlet extends HttpServlet {
                 request.setAttribute("errorMessage", "Invalid username or password");
                 RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
                 dispatcher.forward(request, response);
-            }
-        } catch (SQLException e) {
+                response.sendRedirect("login.jsp?error=Invalid credentials");
+                //response.sendRedirect( request.getContextPath() + "/login");
+            }return;
+        }catch (Exception e){
             e.printStackTrace();
-            response.sendRedirect("login.jsp?error=Something went wrong");
         }
+        request.getSession().invalidate();
     }
+
+
+    private void LogoutUser(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute("user");
+        }
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+    }
+
 
 
 
@@ -237,7 +247,7 @@ public class UserServlet extends HttpServlet {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            response.sendRedirect("forget-password.jsp?error=Something went wrong");
+            //response.sendRedirect("forget-password.jsp?error=Something went wrong");
         }
     }
 
@@ -246,6 +256,7 @@ public class UserServlet extends HttpServlet {
     private void ListUsers(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         List<User> listUser = userDAO.selectAllUser();
+
         if (listUser == null || listUser.isEmpty()) {
             System.out.println("User list is empty!");
         } else {

@@ -25,6 +25,7 @@
     </style>
 </head>
 <body>
+
 <div class="container col-md-5">
   <div class="card" style="top: 100px">
     <div class="card-body">
@@ -36,7 +37,12 @@
         </c:if>
 
       <form action="<%=request.getContextPath()%>/login" method="post">
-          <h2>Login</h2>
+          <div class="d-flex justify-content-between">
+              <h2>Login</h2>
+              <a href="index.jsp">
+                  <h3>Home</h3>
+              </a>
+          </div>
 
           <label>Name</label>
           <fieldset class="form-group">
@@ -48,12 +54,15 @@
           <input type="text"  class="form-control" name="password">
           </fieldset>
 
-        <button type="submit" class="btn btn-primary btn-custom">Login</button>
+        <button id="loginBtn" type="submit" class="btn btn-primary btn-custom">Login</button>
           <a href="forget-password.jsp">Forget Password?</a>
+
       </form>
     </div>
   </div>
 </div>
+
+
 
 </body>
 </html>

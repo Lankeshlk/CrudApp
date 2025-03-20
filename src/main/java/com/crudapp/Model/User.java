@@ -12,6 +12,7 @@ public class User {
     private String image;
 
 
+
     public User( int id, String name, String password, String email, InputStream image_path, String image) {
         this.id = id;
         this.name = name;
@@ -62,7 +63,6 @@ public class User {
     public void setImage_path(InputStream image_path) {
         this.image_path = image_path;
     }
-
     public String getImage() {
         return image;
     }
@@ -70,6 +70,9 @@ public class User {
     public void setImage(String image) {
         this.image = image;
     }
+
+
+
 }
 
 
