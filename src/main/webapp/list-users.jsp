@@ -25,39 +25,48 @@
             margin: 10px;
             width: 150px;
         }
+
     </style>
 </head>
 <body>
 <%@ page import="jakarta.servlet.http.HttpSession" %>
 <%
     response.setHeader("Cache-Control","private, no-cache, no-store, must-revalidate, max-age=0");
-    response.setHeader("pragma", "no-cache");
-    response.setHeader("Expires", "0");
+    //response.setHeader("Expires", "0");
     HttpSession sessionUser = request.getSession(false);
     if (sessionUser == null || sessionUser.getAttribute("user") == null) {
-        response.sendRedirect("login.jsp?error=Please log in first 2");
+        response.sendRedirect("login.jsp");
     }
 %>
+
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="<c:url value='/index.jsp' />">
+        <h3>CRUD Application</h3>
+    </a>
+</nav>
+
 <div class="container">
     <h3 class="text-center">List of Users</h3>
     <hr>
-    <div class="container text-left">
-        <a href="<%=request.getContextPath()%>/new" class="btn btn-success btn-custom">Add New User</a>
-        <a href="<%= request.getContextPath() %>/logout" onclick="logout()" class="btn btn-success btn-custom">Log out</a>
-        <div>
-            <p id="username"><c:out value="${loginUser.name}" /></p>
+    <div class="container text-left d-flex justify-content-between">
+        <div class="d-flex align-items-center">
+            <a href="<%=request.getContextPath()%>/new" class="btn btn-success btn-custom">Add New User</a>
+            <a href="<%= request.getContextPath() %>/logout" onclick="logout()" class="btn btn-primary btn-custom">Log out</a>
+        </div>
+        <div class="d-flex align-items-center">
+            <h3>Welcome, <c:out value="${sessionScope.user}" /></h3>
         </div>
     </div>
     <br>
     <table class="table table-borderless table-striped">
         <thead class="thead-dark">
         <tr>
-            <th class="text-center">ID</th>
-            <th class="text-center">Name</th>
-            <th class="text-center">Email</th>
+            <th class="text-center" style="width: 5%">ID</th>
+            <th class="text-center" style="width: 25%">Name</th>
+            <th class="text-center" style="width: 25%">Email</th>
 <%--            <th>Password</th>--%>
-            <th class="text-center">Profile</th>
-            <th class="text-center">Actions</th>
+            <th class="text-center" style="width: 20%">Profile</th>
+            <th class="text-center" style="width: 25%">Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -144,6 +153,8 @@
 
         });
     });
+
+
 </script>
 
 </body>

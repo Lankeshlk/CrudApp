@@ -17,8 +17,9 @@ public class UserDAO {
     private static final String update = "update crud_system set name = ?, password = ?, email = ?, image_path = ? where id = ?";
     private static final String delete = "delete from crud_system where id=?";
     private static final String selectUser = "select * from crud_system where id = ?";
+    private static final String image = "SELECT image_path FROM crud_system WHERE id=?";
+    private static final String old_password = "SELECT password FROM crud_system WHERE id=?";
     private static final String selectAll = "select * from crud_system";
-    //private static final String loginUser = "select * from crud_system where name = ? and password = ?";
     private static final String forgetPassword = "select * from crud_system where name =? and email = ?";
     private static final String hashedPassword = "select * from crud_system where name = ?";
     private static final String userName = "select name from crud_system where name = ?";
@@ -47,10 +48,8 @@ public class UserDAO {
             preparedStatement.setString(3, user.getEmail());
             preparedStatement.setBlob(4, user.getImage_path());
             preparedStatement.executeUpdate();
-                System.out.println("Inserted user successfully!");
             return true;
         }
-
 
         }catch (Exception e) {
             e.printStackTrace();
@@ -63,7 +62,7 @@ public class UserDAO {
         try (Connection connection=getConnection();
              PreparedStatement statement = connection.prepareStatement(update)) {
             statement.setString(1, user.getName());
-            statement.setString(2, hashPassword(user.getPassword()));
+            statement.setString(2, user.getPassword());
             statement.setString(3, user.getEmail());
             statement.setBlob(4, user.getImage_path());
             statement.setInt(5, user.getId());
@@ -90,6 +89,33 @@ public class UserDAO {
         }
         return user;
     }
+
+    public InputStream getExistingImage_stream(int id) throws SQLException {
+        InputStream imageStream = null;
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(image)) {
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                imageStream = resultSet.getBinaryStream("image_path");
+            }
+        }
+        return imageStream;
+    }
+
+    public String getExistingPassword(int id) throws SQLException {
+        String password = null;
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(old_password)) {
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                password = resultSet.getString("password");
+            }
+        }
+        return password;
+    }
+
     public boolean deleteUser(int id) throws SQLException {
         boolean rowdeleted;
         try (Connection connection=getConnection();
@@ -118,19 +144,6 @@ public class UserDAO {
         }
         return users;
     }
-//    public boolean selectUserByNameandPassword(String name, String password) throws SQLException {
-//        boolean status = false ;
-//        try (Connection connection=getConnection();
-//             PreparedStatement preparedStatement = connection.prepareStatement(loginUser)) {
-//            preparedStatement.setString(1, name);
-//            preparedStatement.setString(2, password);
-//            ResultSet resultSet = preparedStatement.executeQuery();
-//            status = resultSet.next();
-//            }catch (Exception e) {
-//            e.printStackTrace();
-//
-//        }return status;
-//    }
 
     public boolean loginUser(String name, String password) throws SQLException {
         boolean login = false;
@@ -179,7 +192,7 @@ public class UserDAO {
             return null;
         }
     }
-    private String hashPassword(String password) {
+    public String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 }

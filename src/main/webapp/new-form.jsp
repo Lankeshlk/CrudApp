@@ -26,14 +26,18 @@
 </head>
 
 <body>
+
+
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="<c:url value='/index.jsp' />">
+        <h3>CRUD Application</h3>
+    </a>
+</nav>
+
 <div class="container col-md-5">
     <div class="card" style="top: 100px">
         <div class="card-body">
-            <c:if test="${not empty errorMessage}">
-                <div class="alert alert-danger">
-                        ${errorMessage}
-                </div>
-            </c:if>
+
                 <form action="insert" method="post" enctype="multipart/form-data">
                     <caption>
                         <h2>
@@ -44,26 +48,33 @@
                         <input type="hidden" name="id" />
                     <fieldset class="form-group">
                         <label>Name</label>
-                        <input id="name" type="text" class="form-control" name="name" required="required">
+                        <input id="name" type="text" class="form-control" name="name" maxlength="20"
+                               oninput="this.value = this.value.replace(/\s/g, '')">
                         <small id="nameError" class="text-danger"></small>
+                        <c:if test="${not empty errorMessage}">
+                            <div class="text-danger">
+                                    ${errorMessage}
+                            </div>
+                        </c:if>
                     </fieldset>
 
                     <fieldset class="form-group">
                         <label>Email</label>
-                        <input id="email" type="email"  class="form-control" name="email" required="required">
+                        <input id="email" type="text"  class="form-control" name="email" maxlength="30"
+                               oninput="this.value = this.value.replace(/\s/g, '')">
                         <small id="emailError" class="text-danger"></small>
                     </fieldset>
 
                     <fieldset class="form-group">
                         <label>Password</label>
-                        <input id="password" type="password"  class="form-control" name="password_A" required="required"
+                        <input id="password" type="password"  class="form-control" name="password"
                                oninput="this.value = this.value.replace(/\s/g, '')">
                         <small id="passwordError" class="text-danger"></small>
                     </fieldset>
 
                     <fieldset class="form-group">
                         <label>Confirm Password</label>
-                        <input id="password_B" type="password"  class="form-control" name="password_B" required="required"
+                        <input id="password_B" type="password"  class="form-control" name="password_B"
                                oninput="this.value = this.value.replace(/\s/g, '')">
 
                         <small id="confirmPasswordError" class="text-danger"></small>
@@ -74,7 +85,7 @@
                         <input type="file" id="profile" name="image_path"  accept="image/*">
                     </fieldset>
 
-                    <button type="submit" class="btn btn-primary btn-custom">Save</button>
+                    <button type="submit" class="btn btn-success btn-custom">Save</button>
                 </form>
         </div>
     </div>
@@ -82,56 +93,82 @@
 
 
 <script>
-    document.getElementById("name").addEventListener("input", function() {
-        let password = this.value;
-        let errorMessage = document.getElementById("nameError");
-
-        if (password.length < 1) {
-            errorMessage.textContent = "Enter Name";
-        } else if (password.length > 20) {
-            errorMessage.textContent = "Name must not exceed 50 characters.";
-        } else {
-            errorMessage.textContent = "";
-        }
-    });
-
-    document.getElementById("email").addEventListener("input", function() {
-        let password = this.value;
-        let errorMessage = document.getElementById("emailError");
-
-        if (password.length < 1) {
-            errorMessage.textContent = "Enter Email ID";
-        } else if (password.length > 20) {
-            errorMessage.textContent = "Email id must not exceed 50 characters.";
-        } else {
-            errorMessage.textContent = "";
-        }
-    });
 
     document.getElementById("password").addEventListener("input", function() {
         let password = this.value;
-        let errorMessage = document.getElementById("passwordError");
+        let errorPassword = document.getElementById("passwordError");
 
-        if (password.length < 1) {
-            errorMessage.textContent = "Password must be at least 8 characters.";
-        } else if (password.length > 20) {
-            errorMessage.textContent = "Password must not exceed 20 characters.";
+        if (password.length < 3) {
+            errorPassword.textContent = "Password must be at least 8 characters.";
         } else {
-            errorMessage.textContent = "";
+            errorPassword.textContent = "";
         }
     });
 
-    document.getElementById("password_B").addEventListener("input", function() {
-        let password = document.getElementById("password").value;
-        let confirmPassword = this.value;
-        let confirmPasswordError = document.getElementById("confirmPasswordError");
+    document.querySelector("form").addEventListener("submit", function (event) {
+        let valid = true;
 
-        if (password !== confirmPassword) {
-            confirmPasswordError.textContent = "Wrong password";
+        let name = document.getElementById("name").value.trim();
+        let errorName = document.getElementById("nameError");
+
+        let email = document.getElementById("email").value.trim();
+        let errorMail = document.getElementById("emailError");
+        let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+        let password = document.getElementById("password").value.trim();
+        let errorPassword = document.getElementById("passwordError");
+
+        let password_B = document.getElementById("password_B").value.trim();
+        let errorPassword_B = document.getElementById("confirmPasswordError");
+
+
+
+        if (!name) {
+            errorName.textContent = "Enter Name";
+            valid = false;
         } else {
-            confirmPasswordError.textContent = "";
+            errorName.textContent = "";
+        }
+
+
+        if (!email) {
+            errorMail.textContent = "Enter email address";
+            valid = false;
+        }else if (!emailPattern.test(email)) {
+            errorMail.textContent = "Please enter a valid email address.";
+            valid = false;
+        }else {
+            errorMail.textContent = "";
+        }
+
+
+        if (!password) {
+            errorPassword.textContent = "Enter Password";
+            valid = false;
+        }else if (password.length < 3) {
+            errorPassword.textContent = "Password must be at least 8 characters.";
+            valid = false;
+        } else {
+            errorPassword.textContent = "";
+        }
+
+
+        if (!password_B) {
+            errorPassword_B.textContent = "Confirm password";
+            valid = false;
+        } else if (password_B !== password) {
+            errorPassword_B.textContent = "Incorrect passwords";
+            valid = false;
+        } else {
+            errorPassword_B.textContent = "";
+        }
+
+
+        if (!valid) {
+            event.preventDefault();
         }
     });
+
 
 </script>
 

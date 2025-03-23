@@ -6,16 +6,12 @@ import java.util.List;
 
 import com.crudapp.DAO.UserDAO;
 import com.crudapp.Model.User;
-import com.password4j.BcryptFunction;
-import com.password4j.Hash;
-import com.password4j.Password;
-import com.password4j.types.Bcrypt;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 
-import static java.util.Objects.hash;
+
 
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2,
@@ -115,17 +111,17 @@ public class UserServlet extends HttpServlet {
             throws ServletException, IOException, SQLException {
         String name = request.getParameter("name");
 
-        String password_A = request.getParameter("password_A");
+        String password = request.getParameter("password");
         String password_B = request.getParameter("password_B");
-        String password = null;
-        if (password_A != null && password_A.equals(password_B)) {
-            password= password_A;
-        }else {
-            request.setAttribute("errorMessage", "Check confirm password");
-            RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
-            dispatcher.forward(request, response);
-            response.sendRedirect( request.getContextPath() + "/insert");
-        }
+//        String password = null;
+//        if (password_A != null && password_A.equals(password_B)) {
+//            password= password_A;
+//        }else {
+//            request.setAttribute("errorMessage", "Check confirm password");
+//            RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
+//            dispatcher.forward(request, response);
+//            response.sendRedirect( request.getContextPath() + "/insert");
+//        }
         String email = request.getParameter("email");
         Part image = request.getPart("image_path");
         InputStream image_stream = null;
@@ -141,9 +137,11 @@ public class UserServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Invalid username");
             RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
             dispatcher.forward(request, response);
-            response.sendRedirect( request.getContextPath() + "/insert");
+            //response.sendRedirect( request.getContextPath() + "/insert");
         }else {
-            response.sendRedirect( request.getContextPath() + "/list");
+            HttpSession session = request.getSession();
+            session.setAttribute("user", name);
+            response.sendRedirect(request.getContextPath() + "/list");
         }
 
     }
@@ -166,15 +164,32 @@ public class UserServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         String name = request.getParameter("name");
         String password = request.getParameter("password");
+        System.out.println("password: " + password);
         String email = request.getParameter("email");
         Part image = request.getPart("image_path");
-        InputStream image_stream = null;
-        if (image != null && image.getSize() > 0) {
+        boolean deleteImage = Boolean.parseBoolean(request.getParameter("deleteImage"));
+        InputStream image_stream;
+
+        if (password != null && password.trim().isEmpty()) {
+            password = null;
+        }
+        System.out.println("password: " + password);
+
+         if (password != null) {
+            password = userDAO.hashPassword(password);
+        }else {
+            password = userDAO.getExistingPassword(id);
+        }
+
+        if (deleteImage){
+            image_stream = null;
+        }
+        else if (image != null && image.getSize() > 0) {
             image_stream = image.getInputStream();
         } else {
-            System.out.println("No image uploaded!");
+            image_stream = userDAO.getExistingImage_stream(id);
         }
-        User newUser = new User( id, name, password, email, image_stream,"");
+        User newUser = new User( id, name,password, email, image_stream,"");
         userDAO.updateUser(newUser);
         response.sendRedirect(request.getContextPath() + "/list");
     }
@@ -208,13 +223,11 @@ public class UserServlet extends HttpServlet {
                 request.setAttribute("errorMessage", "Invalid username or password");
                 RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
                 dispatcher.forward(request, response);
-                response.sendRedirect("login.jsp?error=Invalid credentials");
                 //response.sendRedirect( request.getContextPath() + "/login");
-            }return;
+            }
         }catch (Exception e){
             e.printStackTrace();
         }
-        request.getSession().invalidate();
     }
 
 
@@ -247,7 +260,6 @@ public class UserServlet extends HttpServlet {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            //response.sendRedirect("forget-password.jsp?error=Something went wrong");
         }
     }
 

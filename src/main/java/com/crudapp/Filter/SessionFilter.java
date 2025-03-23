@@ -17,7 +17,6 @@ public class SessionFilter implements Filter {
         HttpSession session = httpRequest.getSession(false);
 
         if (session == null || session.getAttribute("user") == null) {
-            System.out.println("user");
             httpResponse.sendRedirect("login.jsp?error=Please log in first");
         } else {
             chain.doFilter(request, response);

@@ -28,7 +28,9 @@
 <body>
 
 <nav class="navbar navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">CRUD Application</a>
+    <a class="navbar-brand" href="">
+        <h3>CRUD Application</h3>
+    </a>
 </nav>
 
 <div class="container">

@@ -29,6 +29,10 @@ public class User {
         this.image_path = image_path;
     }
 
+
+    public User(int id, String name, String email, InputStream imageStream) {
+    }
+
     public int getId() {
         return id;
     }
@@ -65,10 +69,6 @@ public class User {
     }
     public String getImage() {
         return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
     }
 
 
