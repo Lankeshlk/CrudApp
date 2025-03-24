@@ -13,16 +13,16 @@ import java.util.List;
 public class UserDAO {
 
 
-    private static final String insert = "insert into crud_system (name, password, email, image_path) values(?,?,?,?)";
-    private static final String update = "update crud_system set name = ?, password = ?, email = ?, image_path = ? where id = ?";
-    private static final String delete = "delete from crud_system where id=?";
-    private static final String selectUser = "select * from crud_system where id = ?";
-    private static final String image = "SELECT image_path FROM crud_system WHERE id=?";
-    private static final String old_password = "SELECT password FROM crud_system WHERE id=?";
-    private static final String selectAll = "select * from crud_system";
-    private static final String forgetPassword = "select * from crud_system where name =? and email = ?";
-    private static final String hashedPassword = "select * from crud_system where name = ?";
-    private static final String userName = "select name from crud_system where name = ?";
+    private static final String insert = "insert into crud_users (name, password, email, image_path) values(?,?,?,?)";
+    private static final String update = "update crud_users set name = ?, password = ?, email = ?, image_path = ? where id = ?";
+    private static final String delete = "delete from crud_users where id=?";
+    private static final String selectUser = "select * from crud_users where id = ?";
+    private static final String image = "SELECT image_path FROM crud_users WHERE id=?";
+    private static final String old_password = "SELECT password FROM crud_users WHERE id=?";
+    private static final String selectAll = "select * from crud_users";
+    private static final String forgetPassword = "select * from crud_users where name =? and email = ?";
+    private static final String hashedPassword = "select * from crud_users where name = ?";
+    private static final String userName = "select name from crud_users where name = ?";
 
     protected static Connection getConnection() throws SQLException {
         Connection conn = DBConnection.getConnection();

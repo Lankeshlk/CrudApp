@@ -78,6 +78,30 @@
 </div>
 
 <script>
+    document.getElementById("name").addEventListener("input", function() {
+        let password = this.value;
+        let errorPassword = document.getElementById("nameError");
+
+        if (password.length < 1) {
+            errorPassword.textContent = "Enter name";
+        } else {
+            errorPassword.textContent = "";
+        }
+    });
+
+    document.getElementById("password").addEventListener("input", function() {
+        let password = this.value;
+        let errorPassword = document.getElementById("passwordError");
+
+        if (password.length < 1) {
+            errorPassword.textContent = "Password must be at least 8 characters.";
+        } else {
+            errorPassword.textContent = "";
+        }
+    });
+
+
+
     document.querySelector("form").addEventListener("submit", function (event) {
         let valid = true;
 

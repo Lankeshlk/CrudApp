@@ -26,6 +26,15 @@
 </head>
 
 <body>
+<%@ page import="jakarta.servlet.http.HttpSession" %>
+<%
+    response.setHeader("Cache-Control","private, no-cache, no-store, must-revalidate, max-age=0");
+    //response.setHeader("Expires", "0");
+    HttpSession sessionUser = request.getSession(false);
+    if (sessionUser == null || sessionUser.getAttribute("user") == null) {
+        response.sendRedirect("login.jsp");
+    }
+%>
 
 <nav class="navbar navbar-dark bg-dark">
     <a class="navbar-brand" href="<c:url value='/index.jsp' />">
@@ -118,15 +127,49 @@
 </div>
 <script>
 
-    document.getElementById("password").addEventListener("input", function() {
-        let password = this.value;
-        let errorMessage = document.getElementById("passwordError");
-        if (password.length < 8) {
-            errorMessage.textContent = "Password must be at least 8 characters.";
-        }else {
-            errorMessage.textContent = "";
-        }
-    });
+    // document.getElementById("name").addEventListener("input", function() {
+    //     let name = this.value;
+    //     let errorName = document.getElementById("nameError");
+    //
+    //     if (name.length < 1) {
+    //         errorName.textContent = "Enter name";
+    //     } else {
+    //         errorName.textContent = "";
+    //     }
+    // });
+
+    // document.getElementById("email").addEventListener("input", function() {
+    //     let email = this.value;
+    //     let errorEmail = document.getElementById("emailError");
+    //
+    //     if (email.length < 1) {
+    //         errorEmail.textContent = "Enter email id";
+    //     } else {
+    //         errorEmail.textContent = "";
+    //     }
+    // });
+
+    // document.getElementById("password").addEventListener("input", function() {
+    //     let password = this.value;
+    //     let errorPassword = document.getElementById("passwordError");
+    //
+    //     if (password.length < 1) {
+    //         errorPassword.textContent = "Password must be at least 8 characters.";
+    //     } else {
+    //         errorPassword.textContent = "";
+    //     }
+    // });
+
+    // document.getElementById("password_B").addEventListener("input", function() {
+    //     let password_B = this.value;
+    //     let errorPassword_B = document.getElementById("confirmPasswordError");
+    //
+    //     if (password_B.length < 1) {
+    //         errorPassword_B.textContent = "Confirm password";
+    //     } else {
+    //         errorPassword_B.textContent = "";
+    //     }
+    // });
 
 
     document.querySelector("form").addEventListener("submit", function (event) {

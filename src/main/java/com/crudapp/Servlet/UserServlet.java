@@ -203,6 +203,7 @@ public class UserServlet extends HttpServlet {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(isDeleted ? "success" : "failure");
+
     }
 
 
