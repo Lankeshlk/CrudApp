@@ -12,14 +12,14 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 
 
-
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2,
         maxFileSize = 1024 * 1024 * 10,
         maxRequestSize = 1024 * 1024 * 50
 )
 
-@WebServlet(name = "UserServlet", value = {"/user-servlet", "/list", "/new", "/insert", "/update", "/delete","/edit","/login","/forget","/logout"})
+@WebServlet(name = "UserServlet", value = {"/user-servlet", "/list", "/new", "/insert",
+        "/update", "/delete", "/edit", "/login", "/forget", "/logout", "/checkUsername"})
 public class UserServlet extends HttpServlet {
     private UserDAO userDAO;
 
@@ -28,28 +28,36 @@ public class UserServlet extends HttpServlet {
     }
 
 
-
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         this.doGet(request, response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action =request.getServletPath();
-        switch(action){
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String action = request.getServletPath();
+        switch (action) {
             case "/new":
                 showNewForm(request, response);
                 break;
             case "/insert":
                 try {
                     NewUser(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "/checkUsername":
+                try {
+                    checkUserName(request, response);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
             case "/edit":
                 try {
                     showEditForm(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
@@ -63,28 +71,28 @@ public class UserServlet extends HttpServlet {
             case "/delete":
                 try {
                     DeleteUser(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
             case "/login":
                 try {
                     LoginUser(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
             case "/logout":
                 try {
                     LogoutUser(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
             case "/forget":
                 try {
                     RetriveUser(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
@@ -92,7 +100,7 @@ public class UserServlet extends HttpServlet {
             default:
                 try {
                     ListUsers(request, response);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
@@ -104,7 +112,6 @@ public class UserServlet extends HttpServlet {
         RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
         dispatcher.forward(request, response);
     }
-
 
 
     private void NewUser(HttpServletRequest request, HttpServletResponse response)
@@ -130,7 +137,7 @@ public class UserServlet extends HttpServlet {
         } else {
             System.out.println("No image uploaded!");
         }
-        User newUser = new User(name,password,email,image_stream);
+        User newUser = new User(name, password, email, image_stream);
         boolean Register = userDAO.insertUser(newUser);
 
         if (Register == false) {
@@ -138,7 +145,7 @@ public class UserServlet extends HttpServlet {
             RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
             dispatcher.forward(request, response);
             //response.sendRedirect( request.getContextPath() + "/insert");
-        }else {
+        } else {
             HttpSession session = request.getSession();
             session.setAttribute("user", name);
             response.sendRedirect(request.getContextPath() + "/list");
@@ -146,6 +153,24 @@ public class UserServlet extends HttpServlet {
 
     }
 
+    private void checkUserName(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String username = request.getParameter("name");
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            int userCount = userDAO.existingUser(username);
+            if (userCount > 0) {
+                response.getWriter().write("exists");
+            } else {
+                response.getWriter().write("available");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.getWriter().write("error");
+        }
+    }
 
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
@@ -158,13 +183,11 @@ public class UserServlet extends HttpServlet {
     }
 
 
-
     private void UpdateUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
         String name = request.getParameter("name");
         String password = request.getParameter("password");
-        System.out.println("password: " + password);
         String email = request.getParameter("email");
         Part image = request.getPart("image_path");
         boolean deleteImage = Boolean.parseBoolean(request.getParameter("deleteImage"));
@@ -175,25 +198,23 @@ public class UserServlet extends HttpServlet {
         }
         System.out.println("password: " + password);
 
-         if (password != null) {
+        if (password != null) {
             password = userDAO.hashPassword(password);
-        }else {
+        } else {
             password = userDAO.getExistingPassword(id);
         }
 
-        if (deleteImage){
+        if (deleteImage) {
             image_stream = null;
-        }
-        else if (image != null && image.getSize() > 0) {
+        } else if (image != null && image.getSize() > 0) {
             image_stream = image.getInputStream();
         } else {
             image_stream = userDAO.getExistingImage_stream(id);
         }
-        User newUser = new User( id, name,password, email, image_stream,"");
+        User newUser = new User(id, name, password, email, image_stream, "");
         userDAO.updateUser(newUser);
         response.sendRedirect(request.getContextPath() + "/list");
     }
-
 
 
     private void DeleteUser(HttpServletRequest request, HttpServletResponse response)
@@ -207,7 +228,6 @@ public class UserServlet extends HttpServlet {
     }
 
 
-
     private void LoginUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         String name = request.getParameter("name");
@@ -215,6 +235,7 @@ public class UserServlet extends HttpServlet {
 
         try {
             boolean isValidUser = userDAO.loginUser(name, password);
+
 
             if (isValidUser) {
                 HttpSession session = request.getSession();
@@ -226,7 +247,7 @@ public class UserServlet extends HttpServlet {
                 dispatcher.forward(request, response);
                 //response.sendRedirect( request.getContextPath() + "/login");
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -240,8 +261,6 @@ public class UserServlet extends HttpServlet {
         }
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
-
-
 
 
     private void RetriveUser(HttpServletRequest request, HttpServletResponse response)
@@ -263,7 +282,6 @@ public class UserServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-
 
 
     private void ListUsers(HttpServletRequest request, HttpServletResponse response)

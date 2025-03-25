@@ -21,8 +21,9 @@ public class UserDAO {
     private static final String old_password = "SELECT password FROM crud_users WHERE id=?";
     private static final String selectAll = "select * from crud_users";
     private static final String forgetPassword = "select * from crud_users where name =? and email = ?";
-    private static final String hashedPassword = "select * from crud_users where name = ?";
-    private static final String userName = "select name from crud_users where name = ?";
+    private static final String hashedPassword = "select * from crud_users where binary name = ?";
+    private static final String userName = "select count(*) from crud_users where binary name = ?";
+    //private static final String Name = "select name from crud-users where id = ?";
 
     protected static Connection getConnection() throws SQLException {
         Connection conn = DBConnection.getConnection();
@@ -34,32 +35,40 @@ public class UserDAO {
         return conn;
     }
 
-        public boolean insertUser(User user) throws SQLException {
-        try (Connection connection=getConnection();
-             PreparedStatement preparedStatement2 = connection.prepareStatement(userName)){
-        preparedStatement2.setString(1, user.getName());
-            ResultSet resultSet = preparedStatement2.executeQuery();
-        if (resultSet.next()) {
-            return false;
-        }
-            try (PreparedStatement preparedStatement = connection.prepareStatement(insert)){
+    public boolean insertUser(User user) throws SQLException {
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(insert)) {
             preparedStatement.setString(1, user.getName());
             preparedStatement.setString(2, hashPassword(user.getPassword()));
             preparedStatement.setString(3, user.getEmail());
             preparedStatement.setBlob(4, user.getImage_path());
             preparedStatement.executeUpdate();
             return true;
-        }
-
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+
+    public int existingUser(String name) throws SQLException {
+        int userCount = 0;
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(userName)) {
+            preparedStatement.setString(1, name);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    userCount = resultSet.getInt(1);
+                }
+            }
         }
+        return userCount;
+    }
+
 
     public boolean updateUser(User user) throws SQLException {
         boolean rowupdated;
-        try (Connection connection=getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(update)) {
             statement.setString(1, user.getName());
             statement.setString(2, user.getPassword());
@@ -70,6 +79,7 @@ public class UserDAO {
         }
         return rowupdated;
     }
+
     public User selectUserById(int id) throws SQLException {
         User user = null;
         try (Connection connection = getConnection();
@@ -84,7 +94,7 @@ public class UserDAO {
 
                 String base64Image = convertToBase64(imageStream);
 
-                user = new User(id, name, password, email,null ,base64Image);
+                user = new User(id, name, password, email, null, base64Image);
             }
         }
         return user;
@@ -116,18 +126,20 @@ public class UserDAO {
         return password;
     }
 
+
     public boolean deleteUser(int id) throws SQLException {
         boolean rowdeleted;
-        try (Connection connection=getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(delete)) {
             preparedStatement.setInt(1, id);
             rowdeleted = preparedStatement.executeUpdate() > 0;
         }
         return rowdeleted;
     }
+
     public List<User> selectAllUser() {
         List<User> users = new ArrayList<>();
-        try (Connection connection=getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(selectAll)) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -137,7 +149,7 @@ public class UserDAO {
                 String email = resultSet.getString("email");
                 InputStream imageStream = resultSet.getBinaryStream("image_path");
                 String base64Image = convertToBase64(imageStream);
-                users.add(new User(id,name, password,email,null,base64Image));
+                users.add(new User(id, name, password, email, null, base64Image));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -147,29 +159,29 @@ public class UserDAO {
 
     public boolean loginUser(String name, String password) throws SQLException {
         boolean login = false;
-        try (Connection connection=getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(hashedPassword)) {
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(hashedPassword)) {
             preparedStatement.setString(1, name);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 String storedHash = resultSet.getString("password");
-                login = BCrypt.checkpw(password,storedHash);
+                login = BCrypt.checkpw(password, storedHash);
             }
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return login;
     }
 
     public boolean ForgetPassword(String name, String email) throws SQLException {
-        boolean status = false ;
-        try (Connection connection=getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(forgetPassword)) {
+        boolean status = false;
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(forgetPassword)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, email);
             ResultSet resultSet = preparedStatement.executeQuery();
             status = resultSet.next();
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return status;
@@ -192,6 +204,7 @@ public class UserDAO {
             return null;
         }
     }
+
     public String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }

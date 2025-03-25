@@ -13,14 +13,17 @@
     <title>JSP - CRUD</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
         body {
             background-color: #f8f9fa;
         }
+
         .container {
             margin-top: 50px;
         }
+
         .btn-custom {
             margin: 10px;
             width: 150px;
@@ -31,7 +34,7 @@
 <body>
 <%@ page import="jakarta.servlet.http.HttpSession" %>
 <%
-    response.setHeader("Cache-Control","private, no-cache, no-store, must-revalidate, max-age=0");
+    response.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate, max-age=0");
     //response.setHeader("Expires", "0");
     HttpSession sessionUser = request.getSession(false);
     if (sessionUser == null || sessionUser.getAttribute("user") == null) {
@@ -51,10 +54,11 @@
     <div class="container text-left d-flex justify-content-between">
         <div class="d-flex align-items-center">
             <a href="<%=request.getContextPath()%>/new" class="btn btn-success btn-custom">Add New User</a>
-            <a href="<%= request.getContextPath() %>/logout" onclick="logout()" class="btn btn-primary btn-custom">Log out</a>
+            <a href="<%= request.getContextPath() %>/logout" onclick="logout()" class="btn btn-primary btn-custom">Log
+                out</a>
         </div>
         <div class="d-flex align-items-center">
-            <h3>Welcome, <c:out value="${sessionScope.user}" /></h3>
+            <h3>Welcome, <c:out value="${sessionScope.user}"/></h3>
         </div>
     </div>
     <br>
@@ -64,7 +68,6 @@
             <th class="text-center" style="width: 5%">ID</th>
             <th class="text-center" style="width: 25%">Name</th>
             <th class="text-center" style="width: 25%">Email</th>
-<%--            <th>Password</th>--%>
             <th class="text-center" style="width: 20%">Profile</th>
             <th class="text-center" style="width: 25%">Actions</th>
         </tr>
@@ -74,29 +77,29 @@
 
             <tr>
                 <td class="text-center">
-                    <c:out value="${user.id}" />
+                    <c:out value="${user.id}"/>
                 </td>
                 <td class="text-center">
-                    <c:out value="${user.name}" />
+                    <c:out value="${user.name}"/>
                 </td>
                 <td class="d-flex justify-content-center">
-                    <c:out value="${user.email}" />
+                    <c:out value="${user.email}"/>
                 </td>
-<%--                <td>--%>
-<%--                    <c:out value="${user.password}" />--%>
-<%--                </td>--%>
+                    <%--                <td>--%>
+                    <%--                    <c:out value="${user.password}" />--%>
+                    <%--                </td>--%>
                 <td>
                     <div class="d-flex justify-content-center">
                         <c:if test="${user.image != null}">
-<%--                            <img src="${user.image}" class="img-fluid" alt="Image" width="300" />--%>
-                            <img src="data:image/jpeg;base64,${user.image}" class="rounded-circle " alt="Image" width="100" height="100" />
+                            <img src="data:image/jpeg;base64,${user.image}" class="rounded-circle " alt="Image"
+                                 width="100" height="100"/>
 
                         </c:if>
                         <c:if test="${user.image == null}">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
                                  class="rounded-circle img-fluid"
                                  alt="Default Profile"
-                                 width="100" height="100" />
+                                 width="100" height="100"/>
                         </c:if>
 
                     </div>
@@ -117,8 +120,8 @@
 </div>
 
 <script>
-    $(document).ready(function(){
-        $(".deleteUser").click(function(){
+    $(document).ready(function () {
+        $(".deleteUser").click(function () {
             var id = $(this).data("id");
             var row = $(this).closest("tr");
 
@@ -135,16 +138,18 @@
                     $.ajax({
                         type: "POST",
                         url: "delete",
-                        data: { action: "deleteUser", id: id },
-                        success: function(response) {
-                            if(response === "success") {
-                                row.fadeOut( function() { $(this).remove(); });
-                                Swal.fire("Deleted!", "User has been deleted.", "success");
+                        data: {action: "deleteUser", id: id},
+                        success: function (response) {
+                            if (response === "success") {
+                                row.fadeOut(function () {
+                                    $(this).remove();
+                                });
+                                // Swal.fire("Deleted!", "User has been deleted.", "success");
                             } else {
                                 Swal.fire("Error!", "Failed to delete user!", "error");
                             }
                         },
-                        error: function() {
+                        error: function () {
                             Swal.fire("Error!", "An error occurred while deleting user!", "error");
                         }
                     });
@@ -153,10 +158,7 @@
 
         });
     });
-
-
 </script>
-
 </body>
 
 </html>

@@ -10,14 +10,18 @@
 <html>
 <head>
     <title>JSP - CRUD</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
         body {
             background-color: #f8f9fa;
         }
+
         .container {
             margin-top: 50px;
         }
+
         .btn-custom {
             margin: 10px;
             width: 150px;
@@ -28,12 +32,7 @@
 <body>
 <%@ page import="jakarta.servlet.http.HttpSession" %>
 <%
-    response.setHeader("Cache-Control","private, no-cache, no-store, must-revalidate, max-age=0");
-    //response.setHeader("Expires", "0");
-    HttpSession sessionUser = request.getSession(false);
-    if (sessionUser == null || sessionUser.getAttribute("user") == null) {
-        response.sendRedirect("login.jsp");
-    }
+    response.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate, max-age=0");
 %>
 
 <nav class="navbar navbar-dark bg-dark">
@@ -59,7 +58,7 @@
 
             <form action="update" method="post" enctype="multipart/form-data">
 
-                <input type="hidden" name="id" value="<c:out value='${user.id}' />" />
+                <input type="hidden" name="id" value="<c:out value='${user.id}' />"/>
 
                 <fieldset class="form-group">
                     <label>Name</label>
@@ -67,6 +66,11 @@
                            class="form-control" name="name" maxlength="20"
                            oninput="this.value = this.value.replace(/\s/g, '')">
                     <small id="nameError" class="text-danger"></small>
+                    <c:if test="${not empty errorMessage}">
+                        <div class="text-danger">
+                                ${errorMessage}
+                        </div>
+                    </c:if>
                 </fieldset>
 
                 <fieldset class="form-group">
@@ -80,8 +84,8 @@
                 <fieldset class="form-group">
                     <label>Password</label>
                     <input id="password" type="password"
-<%--                           value="<c:out value='${user.password}' />"--%>
-                           class="form-control" name="password"
+                    <%--                           value="<c:out value='${user.password}' />"--%>
+                           class="form-control" name="password" maxlength="10"
                            oninput="this.value = this.value.replace(/\s/g, '')">
                     <small id="passwordError" class="text-danger"></small>
                 </fieldset>
@@ -89,7 +93,7 @@
                 <fieldset class="form-group">
                     <label>Confirm Password</label>
                     <input id="confirmPassword" type="password"
-                           class="form-control" name="confirmPassword"
+                           class="form-control" name="confirmPassword" maxlength="10"
                            oninput="this.value = this.value.replace(/\s/g, '')">
                     <small id="confirmPasswordError" class="text-danger"></small>
                 </fieldset>
@@ -97,7 +101,7 @@
                 <div>
                     <c:if test="${user.image != null}">
                         <img src="data:image/jpeg;base64,${user.image}"
-                             class="rounded-circle " alt="Image" width="100" height="100" />
+                             class="rounded-circle " alt="Image" width="100" height="100"/>
                         <fieldset class="form-group">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
@@ -108,7 +112,6 @@
                         </fieldset>
                     </c:if>
                 </div>
-
 
 
                 <input type="hidden" name="deleteImage" id="deleteImageInput" value="false">
@@ -127,49 +130,98 @@
 </div>
 <script>
 
-    // document.getElementById("name").addEventListener("input", function() {
-    //     let name = this.value;
-    //     let errorName = document.getElementById("nameError");
-    //
-    //     if (name.length < 1) {
-    //         errorName.textContent = "Enter name";
-    //     } else {
-    //         errorName.textContent = "";
-    //     }
-    // });
+    $(document).ready(function () {
+        let nameValid = true;
+        let oldName = $("#name").val().trim();
+        console.log(oldName + "----------------")
+        $("#name").on("input", function () {
+            let name = $(this).val().trim();
+            console.log(name)
 
-    // document.getElementById("email").addEventListener("input", function() {
-    //     let email = this.value;
-    //     let errorEmail = document.getElementById("emailError");
-    //
-    //     if (email.length < 1) {
-    //         errorEmail.textContent = "Enter email id";
-    //     } else {
-    //         errorEmail.textContent = "";
-    //     }
-    // });
+            if (name !== oldName) {
+                if (name.length > 0) {
+                    $.ajax({
+                        url: "checkUsername",
+                        type: "POST",
+                        data: {name: name},
+                        dataType: "text",
+                        success: function (response) {
+                            if (response.trim() === "exists") {
+                                $("#nameError").text("Name already taken");
+                                nameValid = false;
+                            } else {
+                                $("#nameError").text("");
+                                nameValid = true;
+                            }
+                        },
+                        error: function () {
+                            console.log("AJAX request failed");
+                        }
+                    });
+                } else {
+                    $("#nameError").text("");
+                    nameValid = true;
+                }
+            } else {
+                $("#nameError").text("");
+                console.log(name)
+                console.log(oldName)
+                nameValid = true;
+            }
+        });
 
-    // document.getElementById("password").addEventListener("input", function() {
-    //     let password = this.value;
-    //     let errorPassword = document.getElementById("passwordError");
-    //
-    //     if (password.length < 1) {
-    //         errorPassword.textContent = "Password must be at least 8 characters.";
-    //     } else {
-    //         errorPassword.textContent = "";
-    //     }
-    // });
+        $("form").on("submit", function (event) {
+            if (!nameValid) {
+                event.preventDefault();
+                $("#nameError").text("Name already taken");
+            }
+        });
+    });
 
-    // document.getElementById("password_B").addEventListener("input", function() {
-    //     let password_B = this.value;
-    //     let errorPassword_B = document.getElementById("confirmPasswordError");
-    //
-    //     if (password_B.length < 1) {
-    //         errorPassword_B.textContent = "Confirm password";
-    //     } else {
-    //         errorPassword_B.textContent = "";
-    //     }
-    // });
+    document.getElementById("name").addEventListener("input", function () {
+        let name = this.value;
+        let errorName = document.getElementById("nameError");
+
+        if (name.length < 1) {
+            errorName.textContent = "Enter name";
+        } else {
+            errorName.textContent = "";
+        }
+    });
+
+    document.getElementById("email").addEventListener("input", function () {
+        let email = this.value;
+        let errorEmail = document.getElementById("emailError");
+
+        if (email.length < 1) {
+            errorEmail.textContent = "Enter email address";
+        } else {
+            errorEmail.textContent = "";
+        }
+    });
+
+
+    document.getElementById("password").addEventListener("input", function () {
+        let password = this.value;
+        let errorPassword = document.getElementById("passwordError");
+
+        if (password.length < 1) {
+            errorPassword.textContent = "Password must be at least 8 characters.";
+        } else {
+            errorPassword.textContent = "";
+        }
+    });
+
+    document.getElementById("confirmPassword").addEventListener("input", function () {
+        let confirmPassword = this.value;
+        let errorConfirmPassword = document.getElementById("confirmPasswordError");
+
+        if (confirmPassword.length < 1) {
+            errorConfirmPassword.textContent = "Confirm password";
+        } else {
+            errorConfirmPassword.textContent = "";
+        }
+    });
 
 
     document.querySelector("form").addEventListener("submit", function (event) {
@@ -177,17 +229,25 @@
 
         let name = document.getElementById("name").value.trim();
         let errorName = document.getElementById("nameError");
-        if (!name) {
+
+        let email = document.getElementById("email").value.trim();
+        let errorMail = document.getElementById("emailError");
+        let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+        let password = document.getElementById("password").value.trim();
+        let password_B = document.getElementById("confirmPassword").value.trim();
+        let errorPassword_B = document.getElementById("confirmPasswordError");
+
+
+        if (!name || name.length < 1) {
             errorName.textContent = "Enter Name";
             valid = false;
         } else {
             errorName.textContent = "";
         }
 
-        let email = document.getElementById("email").value.trim();
-        let errorMail = document.getElementById("emailError");
-        let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!email) {
+
+        if (!email || email.length < 1) {
             errorMail.textContent = "Enter email address";
             valid = false;
         } else if (!emailPattern.test(email)) {
@@ -197,12 +257,9 @@
             errorMail.textContent = "";
         }
 
-        let password = document.getElementById("password").value.trim();
-        let password_B = document.getElementById("confirmPassword").value.trim();
-        let errorPassword_B = document.getElementById("confirmPasswordError");
 
         if (password !== password_B) {
-            errorPassword_B.textContent = "Incorrect password";
+            errorPassword_B.textContent = "Password do not match";
             valid = false;
         } else {
             errorPassword_B.textContent = "";

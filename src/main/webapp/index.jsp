@@ -15,10 +15,12 @@
         body {
             background-color: #f8f9fa;
         }
+
         .container {
             margin-top: 50px;
             text-align: center;
         }
+
         .btn-custom {
             margin: 10px;
             width: 150px;

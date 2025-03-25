@@ -12,8 +12,7 @@ public class User {
     private String image;
 
 
-
-    public User( int id, String name, String password, String email, InputStream image_path, String image) {
+    public User(int id, String name, String password, String email, InputStream image_path, String image) {
         this.id = id;
         this.name = name;
         this.password = password;
@@ -24,7 +23,7 @@ public class User {
 
     public User(String name, String password, String email, InputStream image_path) {
         this.name = name;
-        this.password =password;
+        this.password = password;
         this.email = email;
         this.image_path = image_path;
     }
@@ -36,6 +35,7 @@ public class User {
     public int getId() {
         return id;
     }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -43,6 +43,7 @@ public class User {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -50,6 +51,7 @@ public class User {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -57,6 +59,7 @@ public class User {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -64,13 +67,14 @@ public class User {
     public InputStream getImage_path() {
         return image_path;
     }
+
     public void setImage_path(InputStream image_path) {
         this.image_path = image_path;
     }
+
     public String getImage() {
         return image;
     }
-
 
 
 }
