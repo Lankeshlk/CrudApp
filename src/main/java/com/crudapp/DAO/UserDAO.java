@@ -38,9 +38,12 @@ public class UserDAO {
     public boolean insertUser(User user) throws SQLException {
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insert)) {
-            preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, hashPassword(user.getPassword()));
-            preparedStatement.setString(3, user.getEmail());
+            preparedStatement.setString(1,
+                    (!user.getName().isEmpty() && user.getName() != null) ? user.getName() : "N/A");
+            preparedStatement.setString(2,
+                    hashPassword(!user.getPassword().isEmpty() && user.getPassword() != null ? user.getPassword() : "N/A"));
+            preparedStatement.setString(3,
+                    (!user.getEmail().isEmpty() && user.getEmail() != null) ? user.getEmail() : "N/A");
             preparedStatement.setBlob(4, user.getImage_path());
             preparedStatement.executeUpdate();
             return true;
@@ -70,9 +73,12 @@ public class UserDAO {
         boolean rowupdated;
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(update)) {
-            statement.setString(1, user.getName());
-            statement.setString(2, user.getPassword());
-            statement.setString(3, user.getEmail());
+            statement.setString(1,
+                    (!user.getName().isEmpty() && user.getName() != null) ? user.getName() : "N/A" );
+            statement.setString(2,
+                    (!user.getPassword().isEmpty() && user.getPassword() != null) ? user.getPassword() : "N/A");
+            statement.setString(3,
+                    (!user.getEmail().isEmpty() && user.getEmail() != null) ? user.getEmail() : "N/A");
             statement.setBlob(4, user.getImage_path());
             statement.setInt(5, user.getId());
             rowupdated = statement.executeUpdate() > 0;

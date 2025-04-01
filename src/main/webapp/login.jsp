@@ -1,32 +1,13 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: lanke
-  Date: 10/03/2025
-  Time: 4:41 pm
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <html>
 <head>
     <title>JSP - CRUD</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .container {
-            margin-top: 50px;
-        }
-
-        .btn-custom {
-            margin: 10px;
-            width: 150px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
 <% response.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate, max-age=0");%>
@@ -40,7 +21,7 @@
     <div class="card" style="top: 100px">
         <div class="card-body">
 
-            <form action="<%=request.getContextPath()%>/login" method="post">
+            <form id="loginForm" action="<%=request.getContextPath()%>/login" method="post">
                 <div class="d-flex justify-content-between">
                     <h2>Login</h2>
                     <a href="index.jsp">
@@ -81,53 +62,52 @@
 </div>
 
 <script>
-    document.getElementById("name").addEventListener("input", function () {
-        let password = this.value;
-        let errorPassword = document.getElementById("nameError");
-
-        if (password.length < 1) {
-            errorPassword.textContent = "Enter name";
-        } else {
-            errorPassword.textContent = "";
-        }
-    });
-
-    document.getElementById("password").addEventListener("input", function () {
-        let password = this.value;
-        let errorPassword = document.getElementById("passwordError");
-
-        if (password.length < 1) {
-            errorPassword.textContent = "Password must be at least 8 characters.";
-        } else {
-            errorPassword.textContent = "";
-        }
-    });
-
-
-    document.querySelector("form").addEventListener("submit", function (event) {
-        let valid = true;
-
-        let name = document.getElementById("name");
-        let errorName = document.getElementById("nameError");
-        if (!name) {
-            errorName.textContent = "Enter Name";
-            valid = false;
-        } else {
-            errorName.textContent = "";
-        }
-
-        let password = document.getElementById("password");
-        let errorPassword = document.getElementById("passwordError");
-        if (!password) {
-            errorPassword.textContent = "Enter Password";
-            valid = false;
-        } else {
-            errorPassword.textContent = "";
-        }
-
-        if (!valid) {
+    $(document).ready(function () {
+        $("#loginForm").on("submit", function (event) {
             event.preventDefault();
-        }
+
+            let name = $("#name").val().trim();
+            let password = $("#password").val().trim();
+
+
+            let valid = true;
+            if (name.length < 1) {
+                $("#nameError").text("Enter Name");
+                valid = false;
+            } else {
+                $("#nameError").text("");
+            }
+
+            if (password.length < 1) {
+                $("#passwordError").text("Enter password");
+                valid = false;
+            } else {
+                $("#passwordError").text("");
+            }
+
+            if (!valid) {
+                return;
+            }
+
+            $.ajax({
+                url: "login",
+                type: "POST",
+                data: {name: name, password: password},
+                dataType: "text",
+                success: function (response) {
+                    if (response.trim() === "success") {
+                        sessionStorage.setItem("user", "true");
+                        window.location.href = "list";
+                    } else {
+                        $("#nameError").text("Invalid username");
+                        $("#passwordError").text("Invalid password");
+                    }
+                },
+                error: function () {
+                    console.log("AJAX request failed");
+                }
+            });
+        });
     });
 
 

@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: lanke
-  Date: 10/03/2025
-  Time: 4:41 pm
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
@@ -13,26 +6,19 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .container {
-            margin-top: 50px;
-        }
-
-        .btn-custom {
-            margin: 10px;
-            width: 150px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
 <body>
 <%@ page import="jakarta.servlet.http.HttpSession" %>
 <%
     response.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate, max-age=0");
+
+    HttpSession sessionUser = request.getSession(false);
+    if (sessionUser == null || sessionUser.getAttribute("user") == null) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
 %>
 
 <nav class="navbar navbar-dark bg-dark">
@@ -84,7 +70,6 @@
                 <fieldset class="form-group">
                     <label>Password</label>
                     <input id="password" type="password"
-                    <%--                           value="<c:out value='${user.password}' />"--%>
                            class="form-control" name="password" maxlength="10"
                            oninput="this.value = this.value.replace(/\s/g, '')">
                     <small id="passwordError" class="text-danger"></small>
@@ -129,6 +114,10 @@
     </div>
 </div>
 <script>
+
+    if (sessionStorage.getItem("user") !== "true") {
+        window.location.href = "login.jsp"
+    }
 
     $(document).ready(function () {
         let nameValid = true;

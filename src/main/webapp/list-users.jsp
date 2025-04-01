@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: lanke
-  Date: 10/03/2025
-  Time: 4:43 pm
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
@@ -15,30 +8,19 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .container {
-            margin-top: 50px;
-        }
-
-        .btn-custom {
-            margin: 10px;
-            width: 150px;
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
 <%@ page import="jakarta.servlet.http.HttpSession" %>
+
+
 <%
     response.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate, max-age=0");
-    //response.setHeader("Expires", "0");
+
     HttpSession sessionUser = request.getSession(false);
     if (sessionUser == null || sessionUser.getAttribute("user") == null) {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
     }
 %>
 
@@ -54,7 +36,7 @@
     <div class="container text-left d-flex justify-content-between">
         <div class="d-flex align-items-center">
             <a href="<%=request.getContextPath()%>/new" class="btn btn-success btn-custom">Add New User</a>
-            <a href="<%= request.getContextPath() %>/logout" onclick="logout()" class="btn btn-primary btn-custom">Log
+            <a href="<%=request.getContextPath()%>/logout"  class="btn btn-primary btn-custom">Log
                 out</a>
         </div>
         <div class="d-flex align-items-center">
@@ -85,9 +67,6 @@
                 <td class="d-flex justify-content-center">
                     <c:out value="${user.email}"/>
                 </td>
-                    <%--                <td>--%>
-                    <%--                    <c:out value="${user.password}" />--%>
-                    <%--                </td>--%>
                 <td>
                     <div class="d-flex justify-content-center">
                         <c:if test="${user.image != null}">
@@ -120,7 +99,13 @@
 </div>
 
 <script>
-    $(document).ready(function () {
+    if (sessionStorage.getItem("user") !== "true") {
+        window.location.href = "login.jsp"
+    }
+
+
+
+$(document).ready(function () {
         $(".deleteUser").click(function () {
             var id = $(this).data("id");
             var row = $(this).closest("tr");
@@ -144,7 +129,6 @@
                                 row.fadeOut(function () {
                                     $(this).remove();
                                 });
-                                // Swal.fire("Deleted!", "User has been deleted.", "success");
                             } else {
                                 Swal.fire("Error!", "Failed to delete user!", "error");
                             }

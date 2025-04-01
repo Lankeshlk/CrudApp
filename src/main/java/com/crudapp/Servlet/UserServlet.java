@@ -2,11 +2,15 @@ package com.crudapp.Servlet;
 
 import java.io.*;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import com.crudapp.DAO.UserDAO;
 import com.crudapp.Model.User;
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -96,7 +100,6 @@ public class UserServlet extends HttpServlet {
                     e.printStackTrace();
                 }
                 break;
-//            case "/list":
             default:
                 try {
                     ListUsers(request, response);
@@ -117,18 +120,7 @@ public class UserServlet extends HttpServlet {
     private void NewUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         String name = request.getParameter("name");
-
         String password = request.getParameter("password");
-        String password_B = request.getParameter("password_B");
-//        String password = null;
-//        if (password_A != null && password_A.equals(password_B)) {
-//            password= password_A;
-//        }else {
-//            request.setAttribute("errorMessage", "Check confirm password");
-//            RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
-//            dispatcher.forward(request, response);
-//            response.sendRedirect( request.getContextPath() + "/insert");
-//        }
         String email = request.getParameter("email");
         Part image = request.getPart("image_path");
         InputStream image_stream = null;
@@ -138,17 +130,22 @@ public class UserServlet extends HttpServlet {
             System.out.println("No image uploaded!");
         }
         User newUser = new User(name, password, email, image_stream);
-        boolean Register = userDAO.insertUser(newUser);
-
-        if (Register == false) {
+        try {
+            boolean Register = userDAO.insertUser(newUser);
+            if (Register == false) {
+                request.setAttribute("errorMessage", "Invalid username");
+                RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
+                dispatcher.forward(request, response);
+            } else {
+                HttpSession session = request.getSession();
+                session.setAttribute("user", name);
+                response.sendRedirect(request.getContextPath() + "/list");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             request.setAttribute("errorMessage", "Invalid username");
             RequestDispatcher dispatcher = request.getRequestDispatcher("new-form.jsp");
             dispatcher.forward(request, response);
-            //response.sendRedirect( request.getContextPath() + "/insert");
-        } else {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", name);
-            response.sendRedirect(request.getContextPath() + "/list");
         }
 
     }
@@ -176,76 +173,88 @@ public class UserServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
-        User existingUser = userDAO.selectUserById(id);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("edit-user.jsp");
-        request.setAttribute("user", existingUser);
-        dispatcher.forward(request, response);
+        try {
+            User existingUser = userDAO.selectUserById(id);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("edit-user.jsp");
+            request.setAttribute("user", existingUser);
+            dispatcher.forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     private void UpdateUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        String name = request.getParameter("name");
-        String password = request.getParameter("password");
-        String email = request.getParameter("email");
-        Part image = request.getPart("image_path");
-        boolean deleteImage = Boolean.parseBoolean(request.getParameter("deleteImage"));
-        InputStream image_stream;
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String name = request.getParameter("name");
+            String password = request.getParameter("password");
+            String email = request.getParameter("email");
+            Part image = request.getPart("image_path");
+            boolean deleteImage = Boolean.parseBoolean(request.getParameter("deleteImage"));
+            InputStream image_stream;
 
-        if (password != null && password.trim().isEmpty()) {
-            password = null;
-        }
-        System.out.println("password: " + password);
+            if (password != null && password.trim().isEmpty()) {
+                password = null;
+            }
+            System.out.println("password: " + password);
 
-        if (password != null) {
-            password = userDAO.hashPassword(password);
-        } else {
-            password = userDAO.getExistingPassword(id);
-        }
+            if (password != null) {
+                password = userDAO.hashPassword(password);
+            } else {
+                password = userDAO.getExistingPassword(id);
+            }
 
-        if (deleteImage) {
-            image_stream = null;
-        } else if (image != null && image.getSize() > 0) {
-            image_stream = image.getInputStream();
-        } else {
-            image_stream = userDAO.getExistingImage_stream(id);
+            if (deleteImage) {
+                image_stream = null;
+            } else if (image != null && image.getSize() > 0) {
+                image_stream = image.getInputStream();
+            } else {
+                image_stream = userDAO.getExistingImage_stream(id);
+            }
+            User newUser = new User(id, name, password, email, image_stream, "");
+            userDAO.updateUser(newUser);
+            response.sendRedirect(request.getContextPath() + "/list");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        User newUser = new User(id, name, password, email, image_stream, "");
-        userDAO.updateUser(newUser);
-        response.sendRedirect(request.getContextPath() + "/list");
     }
 
 
     private void DeleteUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
-        boolean isDeleted = userDAO.deleteUser(id);
-        response.setContentType("text/plain");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(isDeleted ? "success" : "failure");
+        try {
+            boolean isDeleted = userDAO.deleteUser(id);
+            response.setContentType("text/plain");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(isDeleted ? "success" : "failure");
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setContentType("text/plain");
+        }
 
     }
 
-
     private void LoginUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
+
         String name = request.getParameter("name");
         String password = request.getParameter("password");
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
 
+        HttpSession session = request.getSession();
         try {
             boolean isValidUser = userDAO.loginUser(name, password);
 
-
             if (isValidUser) {
-                HttpSession session = request.getSession();
                 session.setAttribute("user", name);
-                response.sendRedirect(request.getContextPath() + "/list");
+                response.getWriter().write("success");
+
             } else {
-                request.setAttribute("errorMessage", "Invalid username or password");
-                RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
-                dispatcher.forward(request, response);
-                //response.sendRedirect( request.getContextPath() + "/login");
+                response.getWriter().write("Invalid username or password");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -258,8 +267,9 @@ public class UserServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.removeAttribute("user");
+            session.invalidate();
         }
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect("login.jsp");
     }
 
 
@@ -272,7 +282,7 @@ public class UserServlet extends HttpServlet {
             if (isValidUser) {
                 HttpSession session = request.getSession();
                 session.setAttribute("user", name);
-                response.sendRedirect(request.getContextPath() + "/list");
+                response.sendRedirect("list-users.jsp");
             } else {
                 request.setAttribute("errorMessage", "Invalid login");
                 RequestDispatcher dispatcher = request.getRequestDispatcher("forget-password.jsp");
@@ -286,15 +296,13 @@ public class UserServlet extends HttpServlet {
 
     private void ListUsers(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
-        List<User> listUser = userDAO.selectAllUser();
-
-        if (listUser == null || listUser.isEmpty()) {
-            System.out.println("User list is empty!");
-        } else {
-            System.out.println("Users retrieved: " + listUser.size());
+        try {
+            List<User> listUser = userDAO.selectAllUser();
+            request.setAttribute("listUser", listUser);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("list-users.jsp");
+            dispatcher.forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        request.setAttribute("listUser", listUser);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("list-users.jsp");
-        dispatcher.forward(request, response);
     }
 }

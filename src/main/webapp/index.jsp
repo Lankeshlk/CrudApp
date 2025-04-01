@@ -11,22 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>JSP - CRUD</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .container {
-            margin-top: 50px;
-            text-align: center;
-        }
-
-        .btn-custom {
-            margin: 10px;
-            width: 150px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
+<style>
+    .container {
+        text-align: center;
+    }
+</style>
 <body>
 
 <nav class="navbar navbar-dark bg-dark">
