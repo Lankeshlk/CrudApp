@@ -90,7 +90,7 @@
                         <fieldset class="form-group">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                                <label class="form-check-label" for="flexCheckDefault">
+                                <label>
                                     Delete
                                 </label>
                             </div>
@@ -122,7 +122,6 @@
     $(document).ready(function () {
         let nameValid = true;
         let oldName = $("#name").val().trim();
-        console.log(oldName + "----------------")
         $("#name").on("input", function () {
             let name = $(this).val().trim();
             console.log(name)

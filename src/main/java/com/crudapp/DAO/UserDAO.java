@@ -45,6 +45,7 @@ public class UserDAO {
             preparedStatement.setString(3,
                     (!user.getEmail().isEmpty() && user.getEmail() != null) ? user.getEmail() : "N/A");
             preparedStatement.setBlob(4, user.getImage_path());
+            System.out.println(user.getImage_path());
             preparedStatement.executeUpdate();
             return true;
         } catch (Exception e) {
